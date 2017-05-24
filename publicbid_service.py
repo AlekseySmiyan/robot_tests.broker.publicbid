@@ -92,9 +92,14 @@ def capitalize_first_letter(string):
 
 def get_field_id(field_id):
     fields = {
-        'value.amount': 'mForm:budget',
-        'minimalStep.amount': 'mForm:step',
-        'title': 'mForm:name'
+        #'value.amount': 'mForm:budget',
+        #'minimalStep.amount': 'mForm:step',
+        'title': 'mForm:name',
+        'dgfDecisionDate': 'mForm:dgfDecisionDate_input',
+        'dgfDecisionID': 'mForm:dgfDecisionId',
+        'tenderAttempts': 'mForm:tenderAttempts_label',
+        'dgfID': 'mForm:dgfID',
+        'description': 'mForm:desc'
     }
 
     return fields[field_id]
@@ -102,8 +107,8 @@ def get_field_id(field_id):
 
 def get_field_value(field_id, field_value):
     values = {
-        'value.amount': field_value['amount'],
-        'minimalStep.amount': field_value['amount'],
+        #'value.amount': field_value['amount'],
+        #'minimalStep.amount': field_value['amount'],
         'title': field_value
     }
 
@@ -194,13 +199,13 @@ def get_document_link_type_xpath(doc_type):
 
 def get_tender_attempts_xpath(tender_data):
     values = {
-        1: "//*[@id='mForm:tenderAttempts_1']",
-        2: "//*[@id='mForm:tenderAttempts_2']",
-        3: "//*[@id='mForm:tenderAttempts_3']",
-        4: "//*[@id='mForm:tenderAttempts_4']"
+        1: "//*[@id='mForm:tenderAttempts_0']",
+        2: "//*[@id='mForm:tenderAttempts_1']",
+        3: "//*[@id='mForm:tenderAttempts_2']",
+        4: "//*[@id='mForm:tenderAttempts_3']"
     }
     if 'tenderAttempts' not in tender_data:
-        return "//*[@id='mForm:tenderAttempts_0']"
+        return "//*[@id='mForm:tenderAttempts_4']"
     else:
         return values[tender_data['tenderAttempts']]
 
@@ -210,4 +215,15 @@ def get_document_type(key):
         "Юридична Інформація Майданчиків": "x_dgfPlatformLegalDetails"
     }
     return values.get(unicode(key).encode('utf-8'), '')
+
+
+def get_change_attempts_xpath(field_value):
+    values = {
+        1: "//*[@id='mForm:tenderAttempts_1']",
+        2: "//*[@id='mForm:tenderAttempts_0']",
+        3: "//*[@id='mForm:tenderAttempts_0']",
+        4: "//*[@id='mForm:tenderAttempts_0']"
+    }
+    return values[field_value]
+    
 

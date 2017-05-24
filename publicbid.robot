@@ -68,7 +68,7 @@ ${bid_number}
   ${countryName}=   Get From Dictionary   ${prepared_tender_data.procuringEntity.address}       countryName
   ${name}=      Get From Dictionary   ${prepared_tender_data.procuringEntity.contactPoint}       name
   ${dkpp_id}=  Convert To String  1.13
-  ${tenderAttemptXpath}=  publicbid_service.get_tender_attempts_xpath  ${prepared_tender_data}
+  ${tenderAttemptXpath}=  publicbid_service.get_tender_attempts_xpath    ${prepared_tender_data}
 
   Switch Browser     ${ARGUMENTS[0]}
   Wait Until Page Contains Element    xpath=//*[text()='ОГОЛОСИТИ ЕЛЕКТРОННІ ТОРГИ']   10
@@ -84,7 +84,7 @@ ${bid_number}
   Sleep  3
   Click Element                       id=mForm:chooseProcurementTypeBtn
   Sleep  5
-  Click Element                       id=mForm:j_idt91:j_idt94
+  #Click Element                       id=mForm:j_idt91:j_idt94
   Wait Until Page Contains Element    id=mForm:name  10
   Input Text                          id=mForm:dgfID  ${dgfID}
   Input text                          id=mForm:name     ${title}
@@ -94,8 +94,9 @@ ${bid_number}
   Input text                          id=mForm:budget   ${budget}
   Sleep  7
   Input text                          id=mForm:step     ${step_rate}
-  ${guarantee_amount}=  Convert To String  ${guarantee.amount}
-  Input text                          id=mForm:guaranteeAmount  ${guarantee_amount}
+  #${guarantee_amount}=  Convert To String  ${guarantee.amount}
+  #Input text                          id=mForm:guaranteeAmount  ${guarantee_amount}
+  Input text                          id=mForm:guaranteePercent    1
   Click Element                       id=mForm:guaranteeCurrency_label
   Click Element                       id=mForm:guaranteeCurrency_1
   ${dgfDecisionDate}=  publicbid_service.convert_date  ${dgfDecisionDate}  %Y-%m-%d  %d.%m.%Y
@@ -141,6 +142,39 @@ ${bid_number}
   ${Ids}       Convert To String  ${tender_UAid}
   Run keyword if   '${mode}' == 'multi'   Set Multi Ids   ${tender_UAid}
   [Return]  ${Ids}
+
+Внести зміни в тендер
+  [Arguments]  ${username}  ${tender_uaid}  ${fieldname}  ${fieldvalue}
+  ${change}=    Run Keyword And Return Status    Element Should Be Visible    xpath=//span[text()='Внести зміни']
+  Run Keyword If    ${change}    publicbid.Завантажити документ погодження змін
+  ${field_id}=    publicbid_service.get_field_id    ${fieldname}
+  Run Keyword If  '${fieldname}' != 'tenderAttempts'    Clear Element Text    ${field_id}
+  ${field_value}=  Run Keyword If  '${fieldname}' == 'dgfDecisionDate'  publicbid_service.convert_date  ${fieldvalue}  %Y-%m-%d  %d.%m.%Y
+  ...              ELSE            Set Variable    ${fieldvalue}
+  Run Keyword If  '${fieldname}' != 'tenderAttempts'  Input Text    id=${field_id}    ${field_value}
+  Run Keyword If  '${fieldname}' == 'tenderAttempts'  publicbid.Оновити поле tenderAttempts    ${field_id}    ${fieldvalue}
+  Execute JavaScript  window.scrollTo(0,0)
+  ${save}=    Run Keyword And Return Status    Element Should Be Visible    xpath=//span[text()='Опублікувати зміни']
+  Run Keyword If    ${save}    Click Element    xpath=//span[text()='Опублікувати зміни']
+  Sleep  3
+  ${confirm}=    Run Keyword And Return Status    Element Should Be Visible    xpath=(//span[text()='Так'])[3]
+  Run Keyword If    ${confirm}    Run Keywords
+  ...    Click Element    xpath=(//span[text()='Так'])[3]
+  ...    AND    Wait Until Element Is Visible    xpath=//*[text()='Збережено!']    120
+
+Завантажити документ погодження змін
+  ${file_path}=        local_path_to_file   TestDocument.docx
+  Choose file          xpath=//input[@id='mForm:docFileChange_input']    ${file_path}
+  Wait Until Element Is Visible    id=mForm:docCard:dc-save-btn    60
+  Sleep  3
+  Click Element    xpath=//*[@id='mForm:docCard:dc-save-btn']/span
+  Sleep  10
+
+Оновити поле tenderAttempts
+  [Arguments]  ${field_id}    ${fieldvalue}
+  Click Element    ${field_id}
+  ${xpath}=    publicbid_service.get_change_attempts_xpath    ${fieldvalue}
+  Click Element    xpath=${xpath}
 
 Завантажити документ до тендеру
   [Arguments]   ${file}  ${type}
@@ -314,19 +348,6 @@ Set Multi Ids
   ${document_type}=  Get Text  xpath=${xpath}
   ${document_type}=  publicbid_service.get_document_type  ${document_type}
   [Return]  ${document_type}
-
-Внести зміни в тендер
-  [Arguments]  ${username}  ${tender_uaid}  ${field}  ${value}
-  Switch Browser    ${username}
-  publicbid.Пошук тендера по ідентифікатору   ${username}   ${tender_uaid}
-  Wait Until Page Contains Element   xpath=//*[@id="mForm:status"]   10
-  ${field_id}=  publicbid_service.get_field_id  ${field}
-  ${field_value}=  publicbid_service.get_field_value  ${field}  ${value}
-  Input Text  id=${field_id}  ${field_value}
-  Sleep  3
-  Click Element              xpath=//*[@id="mForm:bSave"]
-  Sleep  3
-
 
 Задати питання
   [Arguments]  @{ARGUMENTS}
